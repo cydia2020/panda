@@ -72,6 +72,26 @@ void debug_ring_callback(uart_ring *ring) {
   }
 }
 
+// TODO: move this and make a smart_dsu board
+// **** fake DSU **** //
+#define CAN CAN1
+
+void send_spoof_acc(void){
+  uint8_t dat[8];
+  dat[0] = 0x00;
+  dat[1] = 0x00;
+  dat[2] = 0x63;
+  dat[3] = 0xc0;
+  dat[4] = 0x00;
+  dat[5] = 0x00;
+  dat[6] = 0x00;
+  dat[7] = 0x71;
+  CAN->sTxMailBox[0].TDLR = dat[0] | (dat[1] << 8) | (dat[2] << 16) | (dat[3] << 24);
+  CAN->sTxMailBox[0].TDHR = dat[4] | (dat[5] << 8) | (dat[6] << 16) | (dat[7] << 24);
+  CAN->sTxMailBox[0].TDTR = 8;
+  CAN->sTxMailBox[0].TIR = (0x343U << 21) | 1U;
+}
+
 // ***************************** started logic *****************************
 void started_interrupt_handler(uint8_t interrupt_line) {
   volatile unsigned int pr = EXTI->PR & (1U << interrupt_line);
@@ -125,7 +145,7 @@ void set_safety_mode(uint16_t mode, int16_t param) {
           if(board_has_obd()){
             current_board->set_can_mode(CAN_MODE_NORMAL);
           }
-          can_silent = ALL_CAN_SILENT;
+          can_silent = ALL_CAN_LIVE; //CAN_SILENT
           break;
         case SAFETY_ELM327:
           set_intercept_relay(false);
@@ -762,14 +782,14 @@ int main(void) {
 
   // default to silent mode to prevent issues with Ford
   // hardcode a specific safety mode if you want to force the panda to be in a specific mode
-  int err = safety_set_mode(SAFETY_NOOUTPUT, 0);
+  int err = safety_set_mode(SAFETY_ALLOUTPUT, 17);
   if (err == -1) {
     puts("Failed to set safety mode\n");
     while (true) {
       // if SAFETY_NOOUTPUT isn't succesfully set, we can't continue
     }
   }
-  can_silent = ALL_CAN_SILENT;
+  can_silent = ALL_CAN_LIVE; //CAN_SILENT
   can_init_all();
 
 #ifndef EON
