@@ -135,9 +135,10 @@ void EXTI3_IRQHandler(void) {
 
 // this is the only way to leave silent mode
 void set_safety_mode(uint16_t mode, int16_t param) {
-  int err = safety_set_mode(mode, param);
+  int err = set_safety_hooks(mode, param);
   if (err == -1) {
     puts("Error: safety set mode failed\n");
+    while (true);  // ERROR: we can't continue if safety mode isn't succesfully set
   } else {
     switch (mode) {
         case SAFETY_NOOUTPUT:
@@ -332,6 +333,10 @@ int usb_cb_control_msg(USB_Setup_TypeDef *setup, uint8_t *resp, bool hardwired) 
       resp[0] = (fan_rpm & 0x00FFU);
       resp[1] = ((fan_rpm & 0xFF00U) >> 8U);
       resp_len = 2;
+      break;
+    // **** 0xb3: set phone power
+    case 0xb3:
+      current_board->set_phone_power(setup->b.wValue.w > 0U);
       break;
     // **** 0xc0: get CAN debug info
     case 0xc0:
@@ -780,17 +785,8 @@ int main(void) {
   TIM2->EGR = TIM_EGR_UG;
   // use TIM2->CNT to read
 
-  // default to silent mode to prevent issues with Ford
-  // hardcode a specific safety mode if you want to force the panda to be in a specific mode
-  int err = safety_set_mode(SAFETY_ALLOUTPUT, 17);
-  if (err == -1) {
-    puts("Failed to set safety mode\n");
-    while (true) {
-      // if SAFETY_NOOUTPUT isn't succesfully set, we can't continue
-    }
-  }
-  can_silent = ALL_CAN_LIVE; //CAN_SILENT
-  can_init_all();
+  // init to NOOUTPUT and can silent
+  set_safety_mode(SAFETY_ALLOUTPUT, 17);
 
 #ifndef EON
   spi_init();
@@ -801,10 +797,6 @@ int main(void) {
   if (hw_type == HW_TYPE_WHITE_PANDA) {
     current_board->set_esp_gps_mode(ESP_GPS_DISABLED);
   }
-  // only enter power save after the first cycle
-  /*if (check_started()) {
-    set_power_save_state(POWER_SAVE_STATUS_ENABLED);
-  }*/
 #endif
   // 1hz
   timer_init(TIM9, 1464);

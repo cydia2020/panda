@@ -389,6 +389,9 @@ class Panda(object):
   def is_uno(self):
     return self.get_type() == Panda.HW_TYPE_UNO
 
+  def has_obd(self):
+    return (self.is_uno() or self.is_black())
+
   def get_serial(self):
     dat = self._handle.controlRead(Panda.REQUEST_IN, 0xd0, 0, 0, 0x20)
     hashsig, calc_hash = dat[0x1c:], hashlib.sha1(dat[0:0x1c]).digest()[0:4]
@@ -627,3 +630,7 @@ class Panda(object):
     dat = self._handle.controlRead(Panda.REQUEST_IN, 0xb2, 0, 0, 2)
     a = struct.unpack("H", dat)
     return a[0]
+
+# ****************** Phone *****************
+  def set_phone_power(self, enabled):
+    self._handle.controlWrite(Panda.REQUEST_OUT, 0xb3, int(enabled), 0, b'')
