@@ -95,7 +95,7 @@ void send_spoof_acc(void){
 void send_id(void){
   CAN->sTxMailBox[0].TDLR = 0x00;
   CAN->sTxMailBox[0].TDTR = 4;
-  CAN->sTxMailBox[0].TIR = (0x1FFU << 21) | 1U;
+  CAN->sTxMailBox[0].TIR = (0x2FFU << 21) | 1U;
 }
 
 // ***************************** started logic *****************************
