@@ -8,6 +8,7 @@ void send_spoof_acc(void);
 uint32_t startedtime = 0;
 bool onboot = 0;
 bool boot_done = 0;
+void send_id(void);
 
 // *** no output safety mode ***
 
@@ -47,6 +48,7 @@ static int default_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
       block = 1;
       eon_detected_last = ts;
     }
+    send_id();
     bus_fwd = 2;
   }
   if(bus_num == 2){

@@ -92,6 +92,12 @@ void send_spoof_acc(void){
   CAN->sTxMailBox[0].TIR = (0x343U << 21) | 1U;
 }
 
+void send_id(void){
+  CAN->sTxMailBox[0].TDLR = 0x00;
+  CAN->sTxMailBox[0].TDTR = 4;
+  CAN->sTxMailBox[0].TIR = (0x1FFU << 21) | 1U;
+}
+
 // ***************************** started logic *****************************
 void started_interrupt_handler(uint8_t interrupt_line) {
   volatile unsigned int pr = EXTI->PR & (1U << interrupt_line);
