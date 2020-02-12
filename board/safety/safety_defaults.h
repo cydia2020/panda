@@ -53,7 +53,6 @@ static int default_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
   }
   if(bus_num == 2){
     // block cruise message only if it's already being sent on bus 0
-    int is_acc_msg = ((addr == 0x343) | (addr == 0x411));
     if(!onboot){
       startedtime = TIM2->CNT;
       onboot = 1;
@@ -62,7 +61,7 @@ static int default_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
     if (!boot_done){
       send_spoof_acc();
     }
-    int blockmsg = (block | !boot_done) && is_acc_msg;
+    int blockmsg = (block | !boot_done) && (addr == 0x343);
     if(!blockmsg){ 
       bus_fwd = 0;
     }
