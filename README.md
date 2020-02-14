@@ -1,3 +1,82 @@
+smartDSU 
+======
+smartDSU is kind of like WINE in that it is NOT an Emulator.
+
+It sits between your DSU and the powertrain CAN bus of Toyota vehicles that have a DSU and filters the traffic between them, enabling openpilot longitudinal control without removing AEB. It also prevents cruise fault in case the Eon boots up after the car for some reason. The cars known at the time of this writing are listed below:
+
+|   Year   |   Model   |
+|:----     |   :----   |
+|2017-2019 |Corolla    |
+|2016-2018 |Rav4       |
+|2016-2018 |Rav4 Hybrid|
+|2016-2020 |Prius      |
+|2017-2020 |Prius Prime|
+|2017-2019 |Highlander |
+|2018-2019 |Sienna     |
+
+There are probably others that I didn't list, but you will know if your car has a DSU or not.
+
+How it Works
+----
+1) The Panda boots into AllOutput mode, where it forwards all the traffic between bus2 and bus0. Once there is traffic on bus0, it emits the ID message (0x2FF, 4 bytes) on bus 0.
+2) As soon as CAN messages begin showing up on bus2, a timer is started for 2 seconds.
+3) During this time, smartDSU filters out 0x343 and sends a spoofed version to bus 0, which disables the low speed lockout.
+4) After the timer exceeds 2 seconds, 0x343 from the DSU is filtered if it is detected on bus0 (meaning the Eon is sending it.) If it is not detected on bus0, then it is forwarded from the DSU.
+
+Bugs
+----
+- If the Eon is on before the car is on, smartDSU will send the spoof message for the first 2 seconds while the Eon also sends 0x343. This has no effect on the car, but should still be fixed (it's pretty easy)
+- The DSU will think it can engage at any speed, and it will temporarily throw an error on the dash if the car does not support full-speed radar cruise and cruise is engaged below 25mph. This did not lock out the 2018 Corolla it was tested on.
+
+Flashing instructions
+----
+### From Mac / Linux:
+ Just follow the regular [flashing guide.](board/README.md)
+### From an Eon (with Toyota Giraffe or Debug Board):
+ Plug the Eon into the Panda. Plug a 12v DC source into the DC jack of the Giraffe / Debug Board and plug the Panda into it, setting Giraffe switches to 0101 or turning OFF the IGN switch on the debug board. SSH into the Eon and run the following commands, one-by-one, in order:
+ ```
+ cd /data
+ git clone -b smart_dsu https://github.com/wocsor/panda.git smart_dsu
+ cd smart_dsu/board/tools && killall boardd
+ ./enter_download_mode.py
+ make recover
+ reboot
+ ```
+### From Windows:
+ You will need pre-compiled binaries. I put them in the BIN folder but if you'd like to compile the firmware yourself you have 2 options:
+ - Get someone with Linux to compile the firmware and send bootstub.panda.bin and panda.bin to you
+ - Use WSL on Windows 10, following the Linux instructions. Instead of running 
+ `make` run `make recover` and your bin files will be in the board\obj folder.
+ 
+ Next, you will need to install the WinUSB driver with [Zadig.](https://github.com/pbatard/libwdi/releases/download/b721/zadig-2.4.exe)
+ Use a Paw or some other means to get your Panda into DFU mode. If STM BOOTLOADER does not populate in the dropdown list, you may need to click Options > List All Devices. Click Install Driver.
+
+ You will now need the Windows version of dfu-util so you can flash the Panda with the bin files. It can be downloaded [here.](http://dfu-util.sourceforge.net/releases/dfu-util-0.8-binaries/win32-mingw32/dfu-util-static.exe
+ )
+
+ Place dfu-util and the bins into the same folder and navigate to it in Command Prompt. Run these two commands in order:
+ ```
+ dfu-util-static.exe -d 0483:df11 -a 0 -s 0x08004000 -D panda.bin
+ dfu-util-static.exe -d 0483:df11 -a 0 -s 0x08000000:leave -D bootstub.panda.bin
+ ```
+The firmware should now be flashed. You will see a red/orange/yellow pulsating light indicating that the flash was successful.
+
+### Hardware
+You will need a white or grey Panda and a Toyota Giraffe. Make sure your Toyota Giraffe has the 120 ohm resistor between pins 12 and 13 of the OBD socket. You can test this with a multimeter. If it isn't installed internally you can add one manually by following [this guide.](https://medium.com/@comma_ai/toyota-giraffe-configuration-fix-20283ba4d01a)
+
+STL files for the connectors are available in the STL folder if you would like to build one of these yourself, and the BOM is below:
+
+|Part                                      |QTY     |Link   |
+|------------------------------------------|:------:|-------|
+|Dupont Connector Pins - Male + Female Pair|9m, 9f  | https://www.amazon.com/Gikfun-Female-Connector-Terminal-2-54mm/dp/B0146DJR9Q/ref=sr_1_6?keywords=dupont+male&qid=1579535904&sr=8-6 |
+|TE Connector Pins - Male                  | 9 | https://www.digikey.com/product-detail/en/te-connectivity-amp-connectors/1376109-1/A124380CT-ND/6052257 |
+|TE Connector Pins - Female                | 9 | https://www.digikey.com/product-detail/en/te-connectivity-amp-connectors/1123343-1/A107011CT-ND/3488572 |
+|TE AMP Connector - Female        | 1 | https://www.digikey.com/product-detail/en/te-connectivity-amp-connectors/1318774-1/A122296-ND/2273519 |
+|TE AMP Connector - Male          | 1 | https://www.digikey.com/products/en?keywords=1565894-1 |
+
+
+TODO: create some information about the wiring of the harness.
+
 Welcome to panda
 ======
 
