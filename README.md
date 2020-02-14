@@ -75,7 +75,23 @@ STL files for the connectors are available in the STL folder if you would like t
 |TE AMP Connector - Male          | 1 | https://www.digikey.com/products/en?keywords=1565894-1 |
 
 
-TODO: create some information about the wiring of the harness.
+Here is a (very rough) wiring diagram for the smartDSU in case you'd like to build your own. TODO: make a better wiring diagram
+
+<img src="https://github.com/wocsor/panda/blob/smart_dsu/giraffe_male.png"> <img src="https://github.com/wocsor/panda/blob/smart_dsu/giraffe_female.png">
+
+<img src="https://github.com/wocsor/panda/blob/smart_dsu/DSU.png">
+
+|PIN  | DESCRIPTION | DSU PIN  |
+|:----|:-----------:|---------:|
+|5    |CAN1H        |10        |
+|6    |CAN2H        |8         |
+|7    |+12V         |7         |
+|10   |GND          |28        |
+|11   |CAN1L        |11        |
+|12   |CAN2L        |9         |
+|1    |passthru     |3         |
+|2    |passthru     |5         |
+|3    |passthru     |23        |
 
 Welcome to panda
 ======
