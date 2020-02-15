@@ -39,7 +39,7 @@ Flashing instructions
  git clone -b smart_dsu https://github.com/wocsor/panda.git smart_dsu
  cd smart_dsu/board/tools && killall boardd
  ./enter_download_mode.py
- make recover
+ cd .. && make recover
  reboot
  ```
 ### From Windows:
