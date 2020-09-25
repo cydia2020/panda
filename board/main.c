@@ -92,8 +92,8 @@ void send_spoof_acc(void){
   CAN->sTxMailBox[0].TIR = (0x343U << 21) | 1U;
 }
 
-void send_id(void){
-  CAN->sTxMailBox[0].TDLR = 0x00;
+void send_id(uint8_t button_state){
+  CAN->sTxMailBox[0].TDLR = (button_state << 7) | (0x00 << 8) | (0x00 << 16) | (0x00 << 24);
   CAN->sTxMailBox[0].TDTR = 4;
   CAN->sTxMailBox[0].TIR = (0x2FFU << 21) | 1U;
 }

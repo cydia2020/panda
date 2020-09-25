@@ -8,7 +8,7 @@ void send_spoof_acc(void);
 uint32_t startedtime = 0;
 bool onboot = 0;
 bool boot_done = 0;
-void send_id(void);
+void send_id(uint8_t button_state);
 
 // *** no output safety mode ***
 
@@ -28,7 +28,7 @@ static int nooutput_tx_lin_hook(int lin_num, uint8_t *data, int len) {
   UNUSED(len);
   return false;
 }
-
+uint8_t button_state = 0;
 // TODO: make this only happen on Toyotas. write some kind of detection
 static int default_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
   // UNUSED(bus_num);
@@ -48,15 +48,20 @@ static int default_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
       block = 1;
       eon_detected_last = ts;
     }
-    send_id();
     bus_fwd = 2;
   }
   if(bus_num == 2){
+    // lock rate to stock 0x343. better have a working DSU!
+    if (addr == 0x343){
+      button_state = (GET_BYTE(to_fwd, 2) >> 4U);
+      send_id(button_state);
+    }
     // block cruise message only if it's already being sent on bus 0
     if(!onboot){
       startedtime = TIM2->CNT;
       onboot = 1;
     }
+    // DSU normally sends nothing for 2 sec, causing the cruise fault so spam the fake msg
     boot_done = (TIM2->CNT > (startedtime + 2000000));
     if (!boot_done){
       send_spoof_acc();
