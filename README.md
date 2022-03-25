@@ -1,3 +1,12 @@
+# THIS CODE IS DEPRECATED. PLEASE USE THIS INSTEAD
+https://github.com/RetroPilot/panda/tree/master/board/smart_dsu
+
+Support RetroPilot and all contributors via our patreon!
+https://www.patreon.com/wocsor
+
+One time donations also available via PayPal
+paypal.me/wocsor
+
 smartDSU 
 ======
 smartDSU is kind of like WINE in that it is NOT an Emulator.
