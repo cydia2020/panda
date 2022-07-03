@@ -14,16 +14,14 @@ const uint32_t TOYOTA_RT_INTERVAL = 250000;    // 250ms between real time checks
 
 // longitudinal limits
 const int TOYOTA_MAX_ACCEL = 2000;        // 2.0 m/s2
-const int TOYOTA_MIN_ACCEL = -3500;       // -3.5 m/s2
+const int TOYOTA_MIN_ACCEL = -4000;       // -3.5 m/s2
 
 const int TOYOTA_STANDSTILL_THRSLD = 100;  // 1kph
 
-// Roughly calculated using the offsets in openpilot +5%:
-// In openpilot: ((gas1_norm + gas2_norm)/2) > 15
-// gas_norm1 = ((gain_dbc*gas1) + offset1_dbc)
-// gas_norm2 = ((gain_dbc*gas2) + offset2_dbc)
-// In this safety: ((gas1 + gas2)/2) > THRESHOLD
-const int TOYOTA_GAS_INTERCEPTOR_THRSLD = 845;
+// panda interceptor threshold needs to be equivalent to openpilot threshold to avoid controls mismatches
+// If thresholds are mismatched then it is possible for panda to see the gas fall and rise while openpilot is in the pre-enabled state
+// Threshold calculated from DBC gains: round((((15 + 75.555) / 0.159375) + ((15 + 151.111) / 0.159375)) / 2) = 805
+const int TOYOTA_GAS_INTERCEPTOR_THRSLD = 805;
 #define TOYOTA_GET_INTERCEPTOR(msg) (((GET_BYTE((msg), 0) << 8) + GET_BYTE((msg), 1) + (GET_BYTE((msg), 2) << 8) + GET_BYTE((msg), 3)) / 2U) // avg between 2 tracks
 
 const CanMsg TOYOTA_TX_MSGS[] = {{0x283, 0, 7}, {0x2E6, 0, 8}, {0x2E7, 0, 8}, {0x33E, 0, 7}, {0x344, 0, 8}, {0x365, 0, 7}, {0x366, 0, 7}, {0x4CB, 0, 8},  // DSU bus 0
@@ -43,6 +41,11 @@ addr_checks toyota_rx_checks = {toyota_addr_checks, TOYOTA_ADDR_CHECKS_LEN};
 
 // global actuation limit states
 int toyota_dbc_eps_torque_factor = 100;   // conversion factor for STEER_TORQUE_EPS in %: see dbc file
+
+// steering faults occur when the angle rate is above a certain threshold for too long,
+// allow setting STEER_REQUEST bit to 0 with a non-zero desired torque when expected
+const uint8_t TOYOTA_MAX_STEER_RATE_FRAMES = 19U;
+uint8_t toyota_steer_req_matches;  // counter for steer request bit matching non-zero torque
 
 static uint8_t toyota_compute_checksum(CANPacket_t *to_push) {
   int addr = GET_ADDR(to_push);
@@ -199,6 +202,7 @@ static int toyota_tx_hook(CANPacket_t *to_send, bool longitudinal_allowed) {
     // STEER: safety check on bytes 2-3
     if (addr == 0x2E4) {
       int desired_torque = (GET_BYTE(to_send, 1) << 8) | GET_BYTE(to_send, 2);
+      bool steer_req = GET_BIT(to_send, 0U) != 0U;
       desired_torque = to_signed(desired_torque, 16);
       bool violation = 0;
 
@@ -227,6 +231,22 @@ static int toyota_tx_hook(CANPacket_t *to_send, bool longitudinal_allowed) {
         }
       }
 
+      // on a steer_req bit mismatch, increment counter and reset match count
+      bool steer_req_mismatch = (desired_torque != 0) && !steer_req;
+      if (steer_req_mismatch) {
+        // disallow torque cut if not enough recent matching steer_req messages
+        if (toyota_steer_req_matches < (TOYOTA_MAX_STEER_RATE_FRAMES - 1U)) {
+          violation = 1;
+        }
+      } else {
+        toyota_steer_req_matches = MIN(toyota_steer_req_matches + 1U, 255U);
+      }
+
+      // reset match count if controls not allowed or steer_req mismatch
+      if (!controls_allowed || steer_req_mismatch) {
+        toyota_steer_req_matches = 0U;
+      }
+
       // no torque if controls is not allowed
       if (!controls_allowed && (desired_torque != 0)) {
         violation = 1;
@@ -252,6 +272,7 @@ static const addr_checks* toyota_init(int16_t param) {
   controls_allowed = 0;
   relay_malfunction_reset();
   gas_interceptor_detected = 0;
+  toyota_steer_req_matches = 0;
   toyota_dbc_eps_torque_factor = param;
   return &toyota_rx_checks;
 }
