@@ -212,7 +212,6 @@ void generic_rx_checks(bool stock_ecu_detected) {
 
   // exit controls on rising edge of brake press when the car is stopped
   if (brake_pressed && !brake_pressed_prev && !vehicle_moving) {
-    controls_allowed = 0;
   }
   brake_pressed_prev = brake_pressed;
 
