@@ -16,6 +16,7 @@ const uint32_t TOYOTA_RT_INTERVAL = 250000;    // 250ms between real time checks
 const int TOYOTA_MAX_ACCEL = 2000;        // 2.0 m/s2
 const int TOYOTA_MIN_ACCEL = -4000;       // -3.5 m/s2
 
+const int TOYOTA_HOLD_ACCEL = -500;        // - 0.5 m/s2
 const int TOYOTA_STANDSTILL_THRSLD = 100;  // 1kph
 
 // panda interceptor threshold needs to be equivalent to openpilot threshold to avoid controls mismatches
@@ -27,6 +28,7 @@ const int TOYOTA_GAS_INTERCEPTOR_THRSLD = 805;
 const CanMsg TOYOTA_TX_MSGS[] = {{0x283, 0, 7}, {0x2E6, 0, 8}, {0x2E7, 0, 8}, {0x33E, 0, 7}, {0x344, 0, 8}, {0x365, 0, 7}, {0x366, 0, 7}, {0x4CB, 0, 8},  // DSU bus 0
                                  {0x128, 1, 6}, {0x141, 1, 4}, {0x160, 1, 8}, {0x161, 1, 7}, {0x470, 1, 4},  // DSU bus 1
                                  {0x2E4, 0, 5}, {0x191, 0, 8}, {0x411, 0, 8}, {0x412, 0, 8}, {0x343, 0, 8}, {0x1D2, 0, 8},  // LKAS + ACC
+                                 {0x2A2, 0, 8}, // Thanks Smartype - 0x343 overwrite, CAN_FILTER_ACC_CONTROL
                                  {0x200, 0, 6}};  // interceptor
 
 AddrCheckStruct toyota_addr_checks[] = {
@@ -160,12 +162,16 @@ static int toyota_tx_hook(CANPacket_t *to_send, bool longitudinal_allowed) {
     }
 
     // ACCEL: safety check on byte 1-2
-    if (addr == 0x343) {
+    if (addr == 0x343 || addr == 0x2A2) {
       int desired_accel = (GET_BYTE(to_send, 0) << 8) | GET_BYTE(to_send, 1);
       desired_accel = to_signed(desired_accel, 16);
       if (!longitudinal_allowed) {
         if (desired_accel != 0) {
           tx = 0;
+          // auto brake hold assist?
+          if (vehicle_moving || desired_accel != TOYOTA_HOLD_ACCEL) {
+            tx = 0;
+          }
         }
       }
       bool violation = max_limit_check(desired_accel, TOYOTA_MAX_ACCEL, TOYOTA_MIN_ACCEL);
