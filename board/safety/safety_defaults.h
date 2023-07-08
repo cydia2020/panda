@@ -39,6 +39,7 @@ static int default_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
   // UNUSED(bus_num);
   // UNUSED(to_fwd);
   int bus_fwd = -1;
+  int addr = GET_ADDR(to_fwd);
   if(bus_num == 2) {
       send_spoof_292();
     
@@ -48,6 +49,7 @@ static int default_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
       send_spoof_43B();
       send_spoof_497();
       send_spoof_4CC();
+      if (addr) {}
   }
   return bus_fwd;
 }
