@@ -4,7 +4,7 @@ void default_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
 
 int block = 0;
 uint32_t eon_detected_last = 0;
-void send_spoof_acc(void);
+void send_spoof_292(void);
 void send_spoof_396(void);
 void send_spoof_43A(void);
 void send_spoof_43B(void);
