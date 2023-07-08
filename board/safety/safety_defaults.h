@@ -45,16 +45,15 @@ static int default_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
   if(bus_num == 2) {
     if (addr == 0x2E6) {
       send_spoof_292();
-      }
+    }
     if (addr == 0x33E) {
       send_spoof_396();
-      }
+    }
     if (addr == 0x4CB) {
       send_spoof_43A();
       send_spoof_43B();
       send_spoof_497();
       send_spoof_4CC();
-      }
     }
   }
   return bus_fwd;
