@@ -76,26 +76,123 @@ void debug_ring_callback(uart_ring *ring) {
 // **** fake DSU **** //
 #define CAN CAN1
 
-void send_spoof_acc(void){
+void send_spoof_292(void){
   uint8_t dat[8];
   dat[0] = 0x00;
   dat[1] = 0x00;
-  dat[2] = 0x63;
-  dat[3] = 0xc0;
+  dat[2] = 0x00;
+  dat[3] = 0x00;
   dat[4] = 0x00;
   dat[5] = 0x00;
   dat[6] = 0x00;
-  dat[7] = 0x71;
+  dat[7] = 0x9e;
   CAN->sTxMailBox[0].TDLR = dat[0] | (dat[1] << 8) | (dat[2] << 16) | (dat[3] << 24);
   CAN->sTxMailBox[0].TDHR = dat[4] | (dat[5] << 8) | (dat[6] << 16) | (dat[7] << 24);
   CAN->sTxMailBox[0].TDTR = 8;
-  CAN->sTxMailBox[0].TIR = (0x343U << 21) | 1U;
+  CAN->sTxMailBox[0].TIR = (0x292U << 21) | 1U;
 }
 
-void send_id(uint8_t button_state){
-  CAN->sTxMailBox[0].TDLR = (button_state << 7) | (0x00 << 8) | (0x00 << 16) | (0x00 << 24);
+void send_spoof_32e(void){
+  uint8_t dat[8];
+  dat[0] = 0x00;
+  dat[1] = 0x00;
+  dat[2] = 0x00;
+  dat[3] = 0x00;
+  dat[4] = 0x00;
+  dat[5] = 0x00;
+  dat[6] = 0x00;
+  dat[7] = 0x00;
+  CAN->sTxMailBox[0].TDLR = dat[0] | (dat[1] << 8) | (dat[2] << 16) | (dat[3] << 24);
+  CAN->sTxMailBox[0].TDHR = dat[4] | (dat[5] << 8) | (dat[6] << 16) | (dat[7] << 24);
+  CAN->sTxMailBox[0].TDTR = 8;
+  CAN->sTxMailBox[0].TIR = (0x32EU << 21) | 1U;
+}
+
+void send_spoof_396(void){
+  uint8_t dat[8];
+  dat[0] = 0xBD;
+  dat[1] = 0x00;
+  dat[2] = 0x00;
+  dat[3] = 0x00;
+  dat[4] = 0x60;
+  dat[5] = 0x0F;
+  dat[6] = 0x02;
+  dat[7] = 0x00;
+  CAN->sTxMailBox[0].TDLR = dat[0] | (dat[1] << 8) | (dat[2] << 16) | (dat[3] << 24);
+  CAN->sTxMailBox[0].TDHR = dat[4] | (dat[5] << 8) | (dat[6] << 16) | (dat[7] << 24);
+  CAN->sTxMailBox[0].TDTR = 8;
+  CAN->sTxMailBox[0].TIR = (0x396U << 21) | 1U;
+}
+
+void send_spoof_43A(void){
+  uint8_t dat[8];
+  dat[0] = 0x84;
+  dat[1] = 0x00;
+  dat[2] = 0x00;
+  dat[3] = 0x00;
+  dat[4] = 0x00;
+  dat[5] = 0x00;
+  dat[6] = 0x00;
+  dat[7] = 0x00;
+  CAN->sTxMailBox[0].TDLR = dat[0] | (dat[1] << 8) | (dat[2] << 16) | (dat[3] << 24);
+  CAN->sTxMailBox[0].TDHR = dat[4] | (dat[5] << 8) | (dat[6] << 16) | (dat[7] << 24);
+  CAN->sTxMailBox[0].TDTR = 8;
+  CAN->sTxMailBox[0].TIR = (0x43AU << 21) | 1U;
+}
+
+void send_spoof_43B(void){
+  uint8_t dat[8];
+  dat[0] = 0x00;
+  dat[1] = 0x00;
+  dat[2] = 0x00;
+  dat[3] = 0x00;
+  dat[4] = 0x00;
+  dat[5] = 0x00;
+  dat[6] = 0x00;
+  dat[7] = 0x00;
+  CAN->sTxMailBox[0].TDLR = dat[0] | (dat[1] << 8) | (dat[2] << 16) | (dat[3] << 24);
+  CAN->sTxMailBox[0].TDHR = dat[4] | (dat[5] << 8) | (dat[6] << 16) | (dat[7] << 24);
+  CAN->sTxMailBox[0].TDTR = 8;
+  CAN->sTxMailBox[0].TIR = (0x43BU << 21) | 1U;
+}
+
+void send_spoof_497(void){
+  uint8_t dat[8];
+  dat[0] = 0x00;
+  dat[1] = 0x00;
+  dat[2] = 0x00;
+  dat[3] = 0x00;
+  dat[4] = 0x00;
+  dat[5] = 0x00;
+  dat[6] = 0x00;
+  dat[7] = 0x9e;
+  CAN->sTxMailBox[0].TDLR = dat[0] | (dat[1] << 8) | (dat[2] << 16) | (dat[3] << 24);
+  CAN->sTxMailBox[0].TDHR = dat[4] | (dat[5] << 8) | (dat[6] << 16) | (dat[7] << 24);
+  CAN->sTxMailBox[0].TDTR = 8;
+  CAN->sTxMailBox[0].TIR = (0x497U << 21) | 1U;
+}
+
+void send_spoof_4CC(void){
+  uint8_t dat[8];
+  dat[0] = 0x00;
+  dat[1] = 0x00;
+  dat[2] = 0x00;
+  dat[3] = 0x00;
+  dat[4] = 0x00;
+  dat[5] = 0x00;
+  dat[6] = 0x00;
+  dat[7] = 0x00;
+  CAN->sTxMailBox[0].TDLR = dat[0] | (dat[1] << 8) | (dat[2] << 16) | (dat[3] << 24);
+  CAN->sTxMailBox[0].TDHR = dat[4] | (dat[5] << 8) | (dat[6] << 16) | (dat[7] << 24);
+  CAN->sTxMailBox[0].TDTR = 8;
+  CAN->sTxMailBox[0].TIR = (0x4CCU << 21) | 1U;
+}
+
+// send 0x2AB to tell op that this is connected
+void send_id(void){
+  CAN->sTxMailBox[0].TDLR = 0x00;
   CAN->sTxMailBox[0].TDTR = 4;
-  CAN->sTxMailBox[0].TIR = (0x2FFU << 21) | 1U;
+  CAN->sTxMailBox[0].TIR = (0x2ABU << 21) | 1U;
 }
 
 // ***************************** started logic *****************************

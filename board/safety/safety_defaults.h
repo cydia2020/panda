@@ -5,10 +5,15 @@ void default_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
 int block = 0;
 uint32_t eon_detected_last = 0;
 void send_spoof_acc(void);
+void send_spoof_396(void);
+void send_spoof_43A(void);
+void send_spoof_43B(void);
+void send_spoof_497(void);
+void send_spoof_4CC(void);
 uint32_t startedtime = 0;
 bool onboot = 0;
 bool boot_done = 0;
-void send_id(uint8_t button_state);
+void send_id();
 
 // *** no output safety mode ***
 
@@ -35,40 +40,21 @@ static int default_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
   // UNUSED(to_fwd);
   int bus_fwd = -1;
   int addr = GET_ADDR(to_fwd);
-  if(bus_num == 0){
-    // create a timer and measure elapsed time
-    uint32_t ts = TIM2->CNT;
-    uint32_t ts_elapsed = get_ts_elapsed(ts, eon_detected_last);
-    // reset blocking flag if time since we saw the Eon exceeds limit
-    if (ts_elapsed > 250000) {
-      block = 0;
-    }
-    // do we see the Eon?
-    if(addr == 0x343){
-      block = 1;
-      eon_detected_last = ts;
-    }
-    bus_fwd = 2;
+  if(bus_num == 0) {
   }
-  if(bus_num == 2){
-    // lock rate to stock 0x343. better have a working DSU!
-    if (addr == 0x343){
-      button_state = (GET_BYTE(to_fwd, 2) >> 4U);
-      send_id(button_state);
-    }
-    // block cruise message only if it's already being sent on bus 0
-    if(!onboot){
-      startedtime = TIM2->CNT;
-      onboot = 1;
-    }
-    // DSU normally sends nothing for 2 sec, causing the cruise fault so spam the fake msg
-    boot_done = (TIM2->CNT > (startedtime + 2000000));
-    if (!boot_done){
-      send_spoof_acc();
-    }
-    int blockmsg = (block | !boot_done) && (addr == 0x343);
-    if(!blockmsg){ 
-      bus_fwd = 0;
+  if(bus_num == 2) {
+    if (addr == 0x2E6) {
+      send_spoof_292();
+      }
+    if (addr == 0x33E) {
+      send_spoof_396();
+      }
+    if (addr == 0x4CB) {
+      send_spoof_43A();
+      send_spoof_43B();
+      send_spoof_497();
+      send_spoof_4CC();
+      }
     }
   }
   return bus_fwd;
