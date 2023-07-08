@@ -13,7 +13,7 @@ void send_spoof_4CC(void);
 uint32_t startedtime = 0;
 bool onboot = 0;
 bool boot_done = 0;
-void send_id();
+void send_id(void);
 
 // *** no output safety mode ***
 
